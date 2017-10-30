@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Builds a statically linked binary on Mac OS X, verify with 'otool -L kite-http'
 export GO_EXTLINK_ENABLED=0
 export CGO_ENABLED=0
 
