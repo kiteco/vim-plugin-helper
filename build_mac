@@ -1,2 +1,5 @@
 #!/usr/bin/env bash
-GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w" kite-http.go
+export GO_EXTLINK_ENABLED=0
+export CGO_ENABLED=0
+
+GOOS=darwin GOARCH=amd64 go build -ldflags '-s -w -extldflags "-static"' kite-http.go

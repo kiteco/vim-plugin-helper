@@ -1,2 +1,8 @@
 #!/usr/bin/env bash
-GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" kite-http.go
+# Compiles kite-http as a statically linked binary, use 'ldd kite-http' to verify
+
+export GO_EXTLINK_ENABLED=0
+export CGO_ENABLED=0
+
+GOOS=linux GOARCH=amd64 go build --ldflags '-s -w -extldflags "-static"' kite-http.go
+
