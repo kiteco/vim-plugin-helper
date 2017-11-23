@@ -16,12 +16,14 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
 	debug := flag.Bool("debug", false, "write --data arg to stderr")
 	isPost := flag.Bool("post", false, "POST request")
 	data := flag.String("data", "", "data to send to the HTTP server")
+	timeout := flag.Duration("timeout", time.Second, "timeout for receiving a response from the HTTP server")
 	flag.Parse()
 
 	url := flag.Arg(0)
@@ -37,10 +39,14 @@ func main() {
 	var resp *http.Response
 	var err error
 
+	client := &http.Client{
+		Timeout: *timeout,
+	}
+
 	if *isPost {
-		resp, err = http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(*data)) // match curl's content-type
+		resp, err = client.Post(url, "application/x-www-form-urlencoded", strings.NewReader(*data)) // match curl's content-type
 	} else {
-		resp, err = http.Get(url)
+		resp, err = client.Get(url)
 	}
 
 	if err != nil {
