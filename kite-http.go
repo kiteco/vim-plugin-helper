@@ -1,12 +1,14 @@
 // USAGE
 //
-//   kite-http [--header name=value] [--post --data DATA [--debug]] <url>
+//   kite-http [--header name=value] [--debug] <url>
+//
+// Pass on stdin any data to be POSTed.
 //
 // Sets a default content-type of "application/x-www-form-urlencoded" for POSTs.
 //
 // Writes the http response (including header's protocol and status) to stdout.
 //
-// Use the --debug flag to write DATA to stderr.
+// Use the --debug flag to write data from stdin to stderr.
 
 package main
 
@@ -14,6 +16,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -40,8 +43,6 @@ func main() {
 	flag.Var(&myHeaders, "header", "HTTP header as name=value")
 
 	debug := flag.Bool("debug", false, "write --data arg to stderr")
-	isPost := flag.Bool("post", false, "POST request")
-	data := flag.String("data", "", "data to send to the HTTP server")
 	timeout := flag.Duration("timeout", time.Second, "timeout for receiving a response from the HTTP server")
 	flag.Parse()
 
@@ -51,20 +52,27 @@ func main() {
 		log.Fatal("missing url")
 	}
 
+	var data []byte
+	var err error
+
+	data, err = ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if *debug {
-		io.WriteString(os.Stderr, *data+"\n")
+		io.WriteString(os.Stderr, string(data)+"\n")
 	}
 
 	var req *http.Request
 	var resp *http.Response
-	var err error
 
 	client := &http.Client{
 		Timeout: *timeout,
 	}
 
-	if *isPost {
-		req, err = http.NewRequest("POST", url, strings.NewReader(*data))
+	if len(string(data)) > 0 {
+		req, err = http.NewRequest("POST", url, strings.NewReader(string(data)))
 	} else {
 		req, err = http.NewRequest("GET", url, nil)
 	}
@@ -73,7 +81,7 @@ func main() {
 		req.Header.Set(k, v)
 	}
 
-	if *isPost {
+	if len(string(data)) > 0 {
 		_, ok := myHeaders["Content-Type"]
 		if !ok {
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
