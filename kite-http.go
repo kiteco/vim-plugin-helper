@@ -84,7 +84,7 @@ func main() {
 		Timeout: *timeout,
 	}
 
-	if len(string(data)) > 0 {
+	if len(data) > 0 {
 		req, err = http.NewRequest("POST", url, strings.NewReader(string(data)))
 	} else {
 		req, err = http.NewRequest("GET", url, nil)
@@ -94,9 +94,8 @@ func main() {
 		req.Header.Set(k, v)
 	}
 
-	if len(string(data)) > 0 {
-		_, ok := myHeaders["Content-Type"]
-		if !ok {
+	if len(data) > 0 {
+		if _, ok := myHeaders["Content-Type"]; !ok {
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		}
 	}
