@@ -1,8 +1,8 @@
 // USAGE
 //
-//   kite-http [--header name=value] [--debug] <url>
+//   kite-http [--header name=value] [--debug] [-] <url>
 //
-// Pass on stdin any data to be POSTed.
+// Use a hyphen to read data from stdin and POST it.
 //
 // Sets a default content-type of "application/x-www-form-urlencoded" for POSTs.
 //
@@ -42,22 +42,35 @@ func main() {
 	myHeaders = make(map[string]string)
 	flag.Var(&myHeaders, "header", "HTTP header as name=value")
 
-	debug := flag.Bool("debug", false, "write --data arg to stderr")
+	debug := flag.Bool("debug", false, "write data from stdin to stderr")
 	timeout := flag.Duration("timeout", time.Second, "timeout for receiving a response from the HTTP server")
 	flag.Parse()
 
-	url := flag.Arg(0)
+	var stdin = false
+	var url string
 
-	if url == "" {
+	switch flag.NArg() {
+	case 0:
 		log.Fatal("missing url")
+	case 1:
+		url = flag.Arg(0)
+	case 2:
+		if flag.Arg(0) == "-" {
+			stdin = true
+		} else {
+			log.Fatal("unrecognised argument: " + flag.Arg(0))
+		}
+		url = flag.Arg(1)
 	}
 
 	var data []byte
 	var err error
 
-	data, err = ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		log.Fatal(err)
+	if stdin {
+		data, err = ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	if *debug {
